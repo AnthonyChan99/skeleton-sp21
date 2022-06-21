@@ -133,6 +133,51 @@ public class Model extends Observable {
         return changed;
     }
 
+
+    private int[] updateTiltIndexRes(int[] currentTiltIndexRes, int[] tiltIndexRes) {
+        for (int i = 0; i < board.size(); i++) {
+            if (tiltIndexRes[i] != -1 && currentTiltIndexRes[tiltIndexRes[i]] != tiltIndexRes[i]) tiltIndexRes[i] = currentTiltIndexRes[tiltIndexRes[i]];
+        }
+        return tiltIndexRes;
+    }
+
+    private int[] slide(int[] tiltValue) {
+        int[] currentTiltIndexRes = new int[board.size()];
+        int p = 0;
+        for (int i = 0; i < board.size(); i++) {
+            currentTiltIndexRes[i] = i;
+        }
+
+        for (int i = 0; i < board.size(); i++) {
+            if (tiltValue[i] != -1) {
+                tiltValue[p] = tiltValue[i];
+                if (p != i) tiltValue[i] = -1;
+                currentTiltIndexRes[i] = p;
+                p += 1;
+            }
+        }
+        return currentTiltIndexRes;
+    }
+
+
+    private int[] merge(int[] tiltValue) {
+        int[] currentTiltIndexRes = new int[board.size()];
+        for (int i = 0; i < board.size(); i++) {
+            currentTiltIndexRes[i] = i;
+        }
+        int mergeIndex = 0;
+        while (mergeIndex + 1 < board.size() && tiltValue[mergeIndex] != -1) {
+            if(tiltValue[mergeIndex] == tiltValue[mergeIndex+1]) {
+                tiltValue[mergeIndex] *= 2;
+                tiltValue[mergeIndex + 1] = -1;
+                currentTiltIndexRes[mergeIndex + 1] = mergeIndex;
+                mergeIndex += 2;
+            }
+            else mergeIndex += 1;
+        }
+        return currentTiltIndexRes;
+    }
+
     private int[] tiltOneCol(Side side, int col) {
         int[] tiltValue = new int[board.size()];
         for (int i = 0; i < board.size(); i++) {
@@ -148,96 +193,17 @@ public class Model extends Observable {
             else tiltIndexRes[i] = -1;
         }
 
+        int[] currentTiltIndexRes = slide(tiltValue);
 
-//            int[] preTiltIndexRes = new int[tiltIndexRes.length];
-//            for (int i = 0; i < board.size(); i++) {
-//                preTiltIndexRes[i] = tiltIndexRes[i];
-//            }
+        tiltIndexRes = updateTiltIndexRes(currentTiltIndexRes,tiltIndexRes);
 
-//          slide
+        currentTiltIndexRes = merge(tiltValue);
 
+        tiltIndexRes = updateTiltIndexRes(currentTiltIndexRes,tiltIndexRes);
 
-            int[] currentTiltIndexRes = new int[board.size()];
-            int p = 0;
-            for (int i = 0; i < board.size(); i++) {
-                currentTiltIndexRes[i] = i;
-            }
+        currentTiltIndexRes = slide(tiltValue);
 
-            for (int i = 0; i < board.size(); i++) {
-                if (tiltValue[i] != -1) {
-                    tiltValue[p] = tiltValue[i];
-                    if (p != i) tiltValue[i] = -1;
-                    currentTiltIndexRes[i] = p;
-                    p += 1;
-                }
-            }
-
-            for (int i = 0; i < board.size(); i++) {
-                if (tiltIndexRes[i] != -1 && currentTiltIndexRes[tiltIndexRes[i]] != tiltIndexRes[i]) tiltIndexRes[i] = currentTiltIndexRes[tiltIndexRes[i]];
-            }
-
-
-
-
-
-
-
-
-//          merge
-            for (int i = 0; i < board.size(); i++) {
-                currentTiltIndexRes[i] = i;
-            }
-
-
-            int mergeIndex = 0;
-
-
-            while (mergeIndex + 1 < board.size() && tiltValue[mergeIndex] != -1) {
-                if(tiltValue[mergeIndex] == tiltValue[mergeIndex+1]) {
-                    tiltValue[mergeIndex] *= 2;
-                    tiltValue[mergeIndex + 1] = -1;
-                    currentTiltIndexRes[mergeIndex + 1] = mergeIndex;
-                    mergeIndex += 2;
-                }
-                else mergeIndex += 1;
-            }
-
-            for (int i = 0; i < board.size(); i++) {
-                if (tiltIndexRes[i] != -1 && currentTiltIndexRes[tiltIndexRes[i]] != tiltIndexRes[i]) tiltIndexRes[i] = currentTiltIndexRes[tiltIndexRes[i]];
-            }
-
-//            boolean checkTiltIndexAnyChange = false;
-//            for (int i = 0; !checkTiltIndexAnyChange && i < board.size(); i++) {
-//                if (tiltIndexRes[i] != preTiltIndexRes[i]) {checkTiltIndexAnyChange = true;}
-//            }
-//
-//            if (!checkTiltIndexAnyChange) break;
-
-
-
-
-
-
-
-
-
-        p = 0;
-        for (int i = 0; i < board.size(); i++) {
-            currentTiltIndexRes[i] = i;
-        }
-
-        for (int i = 0; i < board.size(); i++) {
-            if (tiltValue[i] != -1) {
-                tiltValue[p] = tiltValue[i];
-                if (p != i) tiltValue[i] = -1;
-                currentTiltIndexRes[i] = p;
-                p += 1;
-            }
-        }
-
-        for (int i = 0; i < board.size(); i++) {
-            if (tiltIndexRes[i] != -1 && currentTiltIndexRes[tiltIndexRes[i]] != tiltIndexRes[i]) tiltIndexRes[i] = currentTiltIndexRes[tiltIndexRes[i]];
-        }
+        tiltIndexRes = updateTiltIndexRes(currentTiltIndexRes,tiltIndexRes);
 
         return tiltIndexRes;
     }
@@ -260,31 +226,6 @@ public class Model extends Observable {
         actualCoordinates[0] = col;
         actualCoordinates[1] = row;
         return actualCoordinates;
-//        switch (side){
-//            case NORTH : {
-//                actualCoordinates[0] = col;
-//                actualCoordinates[1] = row;
-//                break;
-//            }
-//            case EAST : {
-//                actualCoordinates[0] = row;
-//                actualCoordinates[1] = board.size() - 1 - col;
-//                break;
-//            }
-//            case SOUTH : {
-//                actualCoordinates[0] = board.size() - 1 - col;
-//                actualCoordinates[1] = board.size() - 1 - row;
-//                break;
-//            }
-//            case WEST : {
-//                actualCoordinates[0] = board.size() - 1 - row;
-//                actualCoordinates[1] = col;
-//                break;
-//            }
-//            default:
-//                throw new IllegalStateException("Unexpected Side");
-//        }
-//        return actualCoordinates;
     }
     /** Checks if the game is over and sets the gameOver variable
      *  appropriately.
