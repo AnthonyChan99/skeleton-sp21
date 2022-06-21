@@ -5,7 +5,7 @@ import java.util.Observable;
 
 
 /** The state of a game of 2048.
- *  @author TODO: YOUR NAME HERE
+ *  @author Anthony Chan
  */
 public class Model extends Observable {
     /** Current contents of the board. */
@@ -113,7 +113,19 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
-
+        board.setViewingPerspective(side);
+        for (int i = 0; i < board.size(); i++) {
+            int[] tiltRes = tiltOneCol(side,i);
+            boolean anyChange = false;
+            for (int j = 0; j < board.size(); j++) {
+                if (tiltRes[j] != -1 && tiltRes[j] != j) anyChange = true;
+            }
+            if (anyChange) {
+                tiltOneColMove(side, i, tiltRes);
+                changed = true;
+            }
+        }
+        board.setViewingPerspective(Side.NORTH);
         checkGameOver();
         if (changed) {
             setChanged();
@@ -121,6 +133,159 @@ public class Model extends Observable {
         return changed;
     }
 
+    private int[] tiltOneCol(Side side, int col) {
+        int[] tiltValue = new int[board.size()];
+        for (int i = 0; i < board.size(); i++) {
+            int[] actualCoordinates = getActualCoordinates(side,col, board.size()-1-i);
+            if (tile(actualCoordinates[0],actualCoordinates[1]) != null) tiltValue[i] = tile(actualCoordinates[0],actualCoordinates[1]).value();
+            else tiltValue[i] = -1;
+        }
+        int[] tiltIndexRes = new int[board.size()];
+        for (int i = 0; i < board.size(); i++) {
+            if (tiltValue[i] != -1) {
+                tiltIndexRes[i] = i;
+            }
+            else tiltIndexRes[i] = -1;
+        }
+
+
+//            int[] preTiltIndexRes = new int[tiltIndexRes.length];
+//            for (int i = 0; i < board.size(); i++) {
+//                preTiltIndexRes[i] = tiltIndexRes[i];
+//            }
+
+//          slide
+
+
+            int[] currentTiltIndexRes = new int[board.size()];
+            int p = 0;
+            for (int i = 0; i < board.size(); i++) {
+                currentTiltIndexRes[i] = i;
+            }
+
+            for (int i = 0; i < board.size(); i++) {
+                if (tiltValue[i] != -1) {
+                    tiltValue[p] = tiltValue[i];
+                    if (p != i) tiltValue[i] = -1;
+                    currentTiltIndexRes[i] = p;
+                    p += 1;
+                }
+            }
+
+            for (int i = 0; i < board.size(); i++) {
+                if (tiltIndexRes[i] != -1 && currentTiltIndexRes[tiltIndexRes[i]] != tiltIndexRes[i]) tiltIndexRes[i] = currentTiltIndexRes[tiltIndexRes[i]];
+            }
+
+
+
+
+
+
+
+
+//          merge
+            for (int i = 0; i < board.size(); i++) {
+                currentTiltIndexRes[i] = i;
+            }
+
+
+            int mergeIndex = 0;
+
+
+            while (mergeIndex + 1 < board.size() && tiltValue[mergeIndex] != -1) {
+                if(tiltValue[mergeIndex] == tiltValue[mergeIndex+1]) {
+                    tiltValue[mergeIndex] *= 2;
+                    tiltValue[mergeIndex + 1] = -1;
+                    currentTiltIndexRes[mergeIndex + 1] = mergeIndex;
+                    mergeIndex += 2;
+                }
+                else mergeIndex += 1;
+            }
+
+            for (int i = 0; i < board.size(); i++) {
+                if (tiltIndexRes[i] != -1 && currentTiltIndexRes[tiltIndexRes[i]] != tiltIndexRes[i]) tiltIndexRes[i] = currentTiltIndexRes[tiltIndexRes[i]];
+            }
+
+//            boolean checkTiltIndexAnyChange = false;
+//            for (int i = 0; !checkTiltIndexAnyChange && i < board.size(); i++) {
+//                if (tiltIndexRes[i] != preTiltIndexRes[i]) {checkTiltIndexAnyChange = true;}
+//            }
+//
+//            if (!checkTiltIndexAnyChange) break;
+
+
+
+
+
+
+
+
+
+        p = 0;
+        for (int i = 0; i < board.size(); i++) {
+            currentTiltIndexRes[i] = i;
+        }
+
+        for (int i = 0; i < board.size(); i++) {
+            if (tiltValue[i] != -1) {
+                tiltValue[p] = tiltValue[i];
+                if (p != i) tiltValue[i] = -1;
+                currentTiltIndexRes[i] = p;
+                p += 1;
+            }
+        }
+
+        for (int i = 0; i < board.size(); i++) {
+            if (tiltIndexRes[i] != -1 && currentTiltIndexRes[tiltIndexRes[i]] != tiltIndexRes[i]) tiltIndexRes[i] = currentTiltIndexRes[tiltIndexRes[i]];
+        }
+
+        return tiltIndexRes;
+    }
+
+    private void tiltOneColMove(Side side, int col, int[] tiltRes) {
+        for (int i = 0; i < board.size(); i++) {
+            if (tiltRes[i] != -1 && tiltRes[i] != i) {
+                int[] actualFromCoordinates = getActualCoordinates(side,col, board.size()-1-i);
+                int[] actualToCoordinates = getActualCoordinates(side,col, board.size()-1-tiltRes[i]);
+                if (tile(actualToCoordinates[0],actualToCoordinates[1]) != null && tile(actualFromCoordinates[0], actualFromCoordinates[1]).value() == tile(actualToCoordinates[0], actualToCoordinates[1]).value()) {
+                    score += board.tile(actualToCoordinates[0],actualToCoordinates[1]).value() * 2;
+                }
+                board.move(actualToCoordinates[0],actualToCoordinates[1],tile(actualFromCoordinates[0],actualFromCoordinates[1]));
+            }
+        }
+    }
+
+    private int[] getActualCoordinates(Side side, int col, int row){
+        int[] actualCoordinates = new int[2];
+        actualCoordinates[0] = col;
+        actualCoordinates[1] = row;
+        return actualCoordinates;
+//        switch (side){
+//            case NORTH : {
+//                actualCoordinates[0] = col;
+//                actualCoordinates[1] = row;
+//                break;
+//            }
+//            case EAST : {
+//                actualCoordinates[0] = row;
+//                actualCoordinates[1] = board.size() - 1 - col;
+//                break;
+//            }
+//            case SOUTH : {
+//                actualCoordinates[0] = board.size() - 1 - col;
+//                actualCoordinates[1] = board.size() - 1 - row;
+//                break;
+//            }
+//            case WEST : {
+//                actualCoordinates[0] = board.size() - 1 - row;
+//                actualCoordinates[1] = col;
+//                break;
+//            }
+//            default:
+//                throw new IllegalStateException("Unexpected Side");
+//        }
+//        return actualCoordinates;
+    }
     /** Checks if the game is over and sets the gameOver variable
      *  appropriately.
      */
@@ -138,6 +303,14 @@ public class Model extends Observable {
      * */
     public static boolean emptySpaceExists(Board b) {
         // TODO: Fill in this function.
+        int boardSize = b.size();
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                if (b.tile(i,j) == null) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -148,6 +321,14 @@ public class Model extends Observable {
      */
     public static boolean maxTileExists(Board b) {
         // TODO: Fill in this function.
+        int boardSize = b.size();
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                if (b.tile(i,j)!= null && b.tile(i,j).value() == MAX_PIECE) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -159,6 +340,15 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
+        if (Model.emptySpaceExists(b)) return true;
+        for (int i = 0; i < b.size(); i++) {
+            for (int j = 0; j < b.size(); j++) {
+                if (j - 1 >= 0 && b.tile(i, j).value() == b.tile(i, j - 1).value()) return true;
+                if (j + 1 < b.size() && b.tile(i, j).value() == b.tile(i, j + 1).value()) return true;
+                if (i - 1 >= 0 && b.tile(i, j).value() == b.tile(i - 1, j).value()) return true;
+                if (i + 1 < b.size() && b.tile(i, j).value() == b.tile(i + 1, j).value()) return true;
+            }
+        }
         return false;
     }
 
