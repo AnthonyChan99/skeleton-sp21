@@ -58,7 +58,7 @@ public class ArrayDeque<T> {
     public void addFirst(T item) {
         if (size >= items.length) resize(2 * size);
         items[nextFirst] = item;
-        nextFirst = (nextFirst - 1) % items.length;
+        nextFirst = (nextFirst - 1 + items.length) % items.length;
         size += 1;
     }
 
@@ -89,9 +89,9 @@ public class ArrayDeque<T> {
             return null;
         }
         if (size > 8 && size <= items.length / 4) resize(items.length/2);
-        T removeItem = items[(nextLast - 1) % items.length];
-        items[(nextLast - 1) % items.length] = null;
-        nextLast = (nextLast - 1) % items.length;
+        T removeItem = items[(nextLast - 1 + items.length) % items.length];
+        items[(nextLast - 1 + items.length) % items.length] = null;
+        nextLast = (nextLast - 1 + items.length) % items.length;
         size -= 1;
         return removeItem;
     }

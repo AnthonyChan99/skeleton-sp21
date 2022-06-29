@@ -160,6 +160,20 @@ public class ArrayDequeTestt {
             assertEquals("Should have the same value", i, (double) ad1.removeLast(), 0.0);
         }
 
+    }
 
+
+    @Test
+    public void ADequeFillUpTest() {
+        ArrayDeque<Integer> ad1 = new ArrayDeque<Integer>();
+        for (int i = 0; i < 8; i++) {
+            ad1.addLast(i);
+        }
+        for (int i = 0; i < 8; i++) {
+            ad1.removeLast();
+        }
+        for (int i = 0; i < 8; i++) {
+            ad1.addFirst(i);
+        }
     }
 }
