@@ -76,8 +76,8 @@ public class DebugExercise2 {
 
 
     public static void main(String[] args) {
-        int[] a = {-1,2,3};
-        int[] b = {-1,2,3};
+        int[] a = {-1,2};
+        int[] b = {1,2};
 
         int sumOfElementwiseMaxes = sumOfElementwiseMaxes(a, b);
         System.out.println(sumOfElementwiseMaxes);
